@@ -1,1 +1,1 @@
-web: gunicorn ucast/app:app
+web: gunicorn ucast.app:app

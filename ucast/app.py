@@ -1,11 +1,24 @@
+# import __init__
 import json
+import datetime
+import brain
 
 from flask import Flask
 app = Flask(__name__)
+globdata = []
 
-@app.route('/<int:day_int>')
-def hello(day_int):
-	return json.dumps(day_int)
+@app.before_first_request
+def initializer():
+	globdata = brain_on()
+
+@app.route('/')
+def hello():
+	return json.dumps("Hello, say something!")
+
+@app.route('/range/<string:timerange>')
+def execute_brain(timerange):
+	Brain.learn(globdata)
+	return json.dumps(timerange)
 
 if __name__ == "__main__":
 	app.run()

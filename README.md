@@ -1,0 +1,1 @@
+Input time range format: '2014-05-01TO2014-07-01'
