@@ -1,4 +1,3 @@
-# import __init__
 import json
 import datetime
 import brain
@@ -13,6 +12,7 @@ def initializer():
 
 @app.route('/')
 def hello():
+	print "hello"
 	return json.dumps("Hello, say something!")
 
 @app.route('/range/<string:timerange>')
