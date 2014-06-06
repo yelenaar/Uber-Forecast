@@ -39,6 +39,11 @@ def is_weekend(dpoint):
 		return 1
 	return 0
 
+def is_rushhour(dpoint):
+	if dpoint.hour < 10 and dpoint.hour >= 6 or dpoint.hour < 19 and dpoint.hour >= 16:
+		return 1
+	return 0
+
 # where generates fake data
 def login_generator():
 	if random.random() >= 0.5:
@@ -55,13 +60,18 @@ class Logins(list):
 class UberLogin(object):
 	def __init__(self, date_point):
 		self.timestamp = int(date_point.strftime('%s'))
+		self.hour_of_the_day = date_point.hour
+		self.is_rushhour = is_rushhour(date_point)
 		self.is_night = is_night(date_point)
 		self.day_of_the_month = date_point.day
 		self.day_of_the_week = date_point.weekday()
 		self.month_of_the_year = date_point.month
-		# self.year = date_point.year
-		# self.is_holiday = is_holiday(date_point)
+		self.year = date_point.year
+		self.is_holiday = is_holiday(date_point)
 		self.is_weekend = is_weekend(date_point)
+
+	def learning_params(self):
+		return [self.hour_of_the_day, self.day_of_the_week, self.day_of_the_month, self.is_rushhour, self.is_night, self.is_weekend]
 
 class Brain(object):
 	def __init__(self, login_points):
@@ -86,19 +96,20 @@ class Brain(object):
 		predicting_X = []
 		predicted_timestamps = []
 		for index in range(start_time, end_time):
-			predicting_X.append(UberLogin(datetime.datetime.fromtimestamp(index)).__dict__.values())
+			predicting_X.append(UberLogin(datetime.datetime.fromtimestamp(index)).learning_params())
 		predicting_y = self.model.predict(predicting_X)
-		return predicting_y
+		indices = numpy.where(predicting_y == 1)[0]
+		return indices
 
 	def create_matrices(self, login_points):
 		X = []
 		Y = []
 		for index in range(int(login_points.timestamp_min.strftime('%s')), int(login_points.timestamp_max.strftime('%s'))):
 			if index < login_points[0].timestamp:
-				X.append(UberLogin(datetime.datetime.fromtimestamp(index)).__dict__.values())
+				X.append(UberLogin(datetime.datetime.fromtimestamp(index)).learning_params())
 				Y.append(0)
 			elif index == login_points[0].timestamp:
-				X.append(login_points[0].__dict__.values())
+				X.append(login_points[0].learning_params())
 				Y.append(1)
 				login_points.pop(0)
 		return [X, Y]
