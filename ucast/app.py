@@ -17,8 +17,9 @@ def hello():
 
 @app.route('/range/<string:timerange>')
 def execute_brain(timerange):
-	Brain.learn(globdata)
-	return json.dumps(timerange)
+	core_system = Brain(globdata)
+	timestamps = core_system.forecast(timerange)
+	return json.dumps(timestamps)
 
 if __name__ == "__main__":
 	app.run()
