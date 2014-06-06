@@ -108,7 +108,7 @@ class Brain(object):
 		predicting_y = self.model.predict(predicting_X)
 		output = []
 		for index in range(len(predicted_timestamps)):
-			output.append(predicted_timestamps[index].form_uat_output() + ',' + "{0:.2f}".format((predicting_y[index]))
+			output.append(predicted_timestamps[index].form_uat_output() + ',' + "{0:.2f}".format(predicting_y[index]))
 		return output
 
 	def create_matrices(self, login_points):
