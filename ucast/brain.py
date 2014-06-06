@@ -1,3 +1,9 @@
+"""
+Brain
+
+Yelena Wu (yelenamqwu@gmail.com)
+"""
+
 from sklearn import svm
 from collections import Counter
 import datetime, json, numpy, scipy, random
@@ -16,6 +22,8 @@ def brain_on():
 	login_dict = Counter(data)
 	return Logins(login_dict)
 
+# kind of giving assumption that we are solely dealing with 2012 data
+# to deal with other years data we will need to download dst start/end for different years
 def to_washington_dc_time(dpoint): 
 	if dpoint >= DST_START_2012 and dpoint < DST_END_2012:
 		time_in_dc = dpoint + datetime.timedelta(hours = -4)
@@ -23,8 +31,12 @@ def to_washington_dc_time(dpoint):
 		time_in_dc = dpoint + datetime.timedelta(hours = -3)
 	return time_in_dc
 
-def to_uta(dpoint):
-	if dpoint
+def to_utc(dpoint):
+	if dpoint >= DST_START_2012 and dpoint < DST_END_2012:
+		time_in_utc = dpoint + datetime.timedelta(hours = +4)
+	else:
+		time_in_utc = dpoint + datetime.timedelta(hours = +3)
+	return time_in_utc
 
 # download sunrise and sunset time table to determine day and night
 def is_night(dpoint):
@@ -65,8 +77,8 @@ class UberLogin(object):
 	def learning_params(self):
 		return [self.hour_of_the_day, self.day_of_the_week, self.day_of_the_month, self.is_rushhour, self.is_night, self.is_weekend]
 
-	def form_output(self):
-		return self.dtime_point.strftime(OUTPUT_TIMESTAMP_FORMAT)
+	def form_uat_output(self):
+		return to_utc(self.dtime_point).strftime(OUTPUT_TIMESTAMP_FORMAT)
 
 class Brain(object):
 	def __init__(self, login_points):
@@ -96,7 +108,7 @@ class Brain(object):
 		predicting_y = self.model.predict(predicting_X)
 		output = []
 		for index in range(len(predicted_timestamps)):
-			output.append(predicted_timestamps[index].form_output() + ',' + str(predicting_y[index]))
+			output.append(predicted_timestamps[index].form_uat_output() + ',' + "{0:.2f}".format((predicting_y[index]))
 		return output
 
 	def create_matrices(self, login_points):
@@ -104,7 +116,7 @@ class Brain(object):
 		Y = []
 		timestamps = map(lambda x: x.timestamp, login_points)
 		login_points.timestamp_max - login_points.timestamp_min
-		for ts in range(int(login_points.timestamp_min.strftime('%s')), int(login_points.timestamp_max.strftime('%s')) + 1, 3600):
+		for ts in range(int(login_points.timestamp_min.strftime('%s')), int(login_points.timestamp_max.strftime('%s')), 3600):
 			if ts in timestamps:
 				index = timestamps.index(ts)
 				X.append(login_points[index].learning_params())
@@ -119,6 +131,6 @@ class Brain(object):
 
 	def get_time_range(self, timerange):
 		tr = timerange.split('TO')
-		timerange_from = int(tr[0])
-		timerange_to = int(tr[1])
+		timerange_from = int(to_washington_dc_time(datetime.datetime.strptime(tr[0], INPUT_TIMERANGE_FORMAT)).strftime('%s'))
+		timerange_to = int(to_washington_dc_time(datetime.datetime.strptime(tr[1], INPUT_TIMERANGE_FORMAT)+datetime.timedelta(days = 1)).strftime('%s'))
 		return [timerange_from, timerange_to]

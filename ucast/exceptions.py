@@ -1,3 +1,9 @@
+"""
+This is for error constructor
+
+Yelena Wu (yelenamqwu@gmail.com)
+"""
+
 class APIError():
 	pass
 
