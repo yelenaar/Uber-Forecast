@@ -4,11 +4,12 @@ import datetime, json, numpy, scipy, random
 
 INPUT_TIMERANGE_FORMAT = "%Y-%m-%d"
 INPUT_TIMESTAMP_FORMAT = "%Y-%m-%dT%H"
+OUTPUT_TIMESTAMP_FORMAT = "%Y-%m-%dT%H:00:00"
 DST_START_2012 = datetime.datetime(2012, 3, 11)
 DST_END_2012 = datetime.datetime(2012, 9, 4)
 
 def brain_on():
-	with open('../data/uber_demand_prediction_challenge.json') as f:
+	with open('data/uber_demand_prediction_challenge.json') as f:
 		data = json.load(f)
 	for index in range(len(data)):
 		data[index] = to_washington_dc_time(datetime.datetime.strptime(data[index].split(':')[0], INPUT_TIMESTAMP_FORMAT))
@@ -21,6 +22,9 @@ def to_washington_dc_time(dpoint):
 	else:
 		time_in_dc = dpoint + datetime.timedelta(hours = -3)
 	return time_in_dc
+
+def to_uta(dpoint):
+	if dpoint
 
 # download sunrise and sunset time table to determine day and night
 def is_night(dpoint):
@@ -48,6 +52,7 @@ class Logins(list):
 
 class UberLogin(object):
 	def __init__(self, date_point, num):
+		self.dtime_point = date_point
 		self.timestamp = int(date_point.strftime('%s'))
 		self.hour_of_the_day = date_point.hour
 		self.is_rushhour = is_rushhour(date_point)
@@ -59,6 +64,9 @@ class UberLogin(object):
 
 	def learning_params(self):
 		return [self.hour_of_the_day, self.day_of_the_week, self.day_of_the_month, self.is_rushhour, self.is_night, self.is_weekend]
+
+	def form_output(self):
+		return self.dtime_point.strftime(OUTPUT_TIMESTAMP_FORMAT)
 
 class Brain(object):
 	def __init__(self, login_points):
@@ -78,14 +86,18 @@ class Brain(object):
 		return clf
 
 	def forecast(self, timerange):
-		# assuming input timerange are in washington dc timestamp format
 		start_time, end_time = self.get_time_range(timerange)
 		predicting_X = []
 		predicted_timestamps = []
 		for index in range(start_time, end_time+1, 3600):
-			predicting_X.append(UberLogin(datetime.datetime.fromtimestamp(index), 0).learning_params())
+			item = UberLogin(datetime.datetime.fromtimestamp(index), 0)
+			predicted_timestamps.append(item)
+			predicting_X.append(item.learning_params())
 		predicting_y = self.model.predict(predicting_X)
-		return predicting_y
+		output = []
+		for index in range(len(predicted_timestamps)):
+			output.append(predicted_timestamps[index].form_output() + ',' + str(predicting_y[index]))
+		return output
 
 	def create_matrices(self, login_points):
 		X = []

@@ -1,26 +1,22 @@
 import json
 import datetime
-
 import brain
-
-from flask import Flask
+from flask import Flask, Response
 app = Flask(__name__)
-
-@app.before_first_request
-def initializer():
-	data = brain.brain_on()
-	current_model = brain.Brain(data)
 
 @app.route('/')
 def hello():
-	print "hello"
 	return json.dumps("Hello, say something!")
 
-@app.route('/range/<string:timerange>')
-def execute_brain(timerange):
-	core_system = Brain(globdata)
-	timestamps = core_system.forecast(timerange)
-	return json.dumps(timestamps)
+@app.route('/range/<string:timerange>.csv')
+def execute_brain_to_csv(timerange):
+	def generate():
+		data = brain.brain_on()
+		current_model = brain.Brain(data)
+		login_stats = current_model.forecast(timerange)
+		for row in login_stats:
+			yield row + '\n'
+	return Response(generate(), mimetype='text/csv')
 
 if __name__ == "__main__":
 	app.run()
